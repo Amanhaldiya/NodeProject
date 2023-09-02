@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latest News</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Sans:ital@1&display=swap">
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Add this in the <head> section of your HTML -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<!-- Add this in the <head> section of your HTML -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    
+  
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-fixed-top fixed-top">
+        <a class="navbar-brand" href="/">Latest News</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse search-bar" id="navbarSupportedContent">
+            <form class="form-inline my-2 my-lg-0" action="/search" method="POST">
+                <input class="form-control mr-sm-2" name="search" type="search" placeholder="Search" style="width: 522px;"
+                    aria-label="Search">
+                <button class="btn btn-outline-danger my-2 my-sm-0 mr-sm-5" type="submit">Search</button>
+            </form>
+        </div>
+       <div>
+        <label for="countrySelect">Select a Country:</label>
+        <select id="countrySelect">
+            <option value="us">United States</option>
+            <option value="jp">Japan</option>
+            <option value="rs">Russia</option>
+            <option value="au">Australia</option>
+            <!-- Add more country options as needed -->
+        </select>
+        <button id="fetchNewsBtn" class="btn btn-primary">Fetch News</button>
+       </div>
+        <div id="newsResults"></div>
+    
+    </nav>
+
+    <div class="news-container">
+        <% articles.forEach(function(article,index){ %>
+        <% if (article.url && article.title && article.urlToImage && article.content){ %>
+        <a href="<%- article.url %>" target="_blank" class="news-box Hover-effect">
+            <img src="<%- article.urlToImage %>" alt="Image">
+            <h3><%- article.title %></h3>
+            <p><%- article.content %></p>
+            <div class="timestamp">
+                Updated: <span><%- new Date(article.publishedAt.slice(0,10)).toDateString() %>    <%- moment(article.publishedAt).format('hh : mm A');%></span>
+            </div>
+        </a>
+        <% } %>
+        <% }) %>
+    </div>
+    <script>
+        const countrySelect = document.getElementById('countrySelect');
+          const fetchNewsBtn = document.getElementById('fetchNewsBtn');
+          const newsResults = document.getElementById('newsResults');
+  
+          fetchNewsBtn.addEventListener('click', async () => {
+              const selectedCountry = countrySelect.value;
+  
+              // Make a request to your Node.js backend with the selected country
+              const response = await fetch(`/news?country=${selectedCountry}`);
+              const data = await response.json();
+  // Clear the previous content of newsResults
+newsResults.innerHTML = '';
+
+// Create a container for the grid of news cards
+const newsGridContainer = document.createElement('div');
+newsGridContainer.classList.add('col', 'justify-content-center', 'scrollable-container'); // Center the cards
+
+// Add custom CSS style to make the container scrollable
+newsGridContainer.style.maxHeight = '1400px'; // Adjust the maximum height as needed
+newsGridContainer.style.overflowY = 'auto';
+
+data.forEach(article => {
+    // Create a news card
+    const newsCard = document.createElement('div');
+    newsCard.classList.add('col-md-4', 'mb-4');
+
+    // Create a card element for the news
+    const cardElement = document.createElement('div');
+    cardElement.classList.add('card');
+
+    // Create an image element for the news
+    const imageElement = document.createElement('img');
+    imageElement.src = article.urlToImage || 'placeholder.jpg';
+    imageElement.alt = 'News Image';
+    imageElement.classList.add('card-img-top');
+
+    // Create a card body for the news content
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body');
+
+    // Create a title element for the news
+    const titleElement = document.createElement('h5');
+    titleElement.textContent = article.title;
+    titleElement.classList.add('card-title');
+
+    // Create a description element for the news
+    const descriptionElement = document.createElement('p');
+    descriptionElement.textContent = article.description;
+    descriptionElement.classList.add('card-text');
+
+    // Create a timestamp element for the news
+    const timestampElement = document.createElement('small');
+    timestampElement.innerHTML = `Updated: <span>${new Date(article.publishedAt.slice(0, 10)).toDateString()} ${moment(article.publishedAt).format('hh : mm A')}</span>`;
+    timestampElement.classList.add('text-muted');
+
+    // Create a "Read more" link
+    const readMoreLink = document.createElement('a');
+    readMoreLink.href = article.url;
+    readMoreLink.textContent = 'Read more';
+    readMoreLink.classList.add('btn', 'btn-primary', 'btn-sm');
+
+    // Append elements to the card body
+    cardBody.appendChild(titleElement);
+    cardBody.appendChild(descriptionElement);
+    cardBody.appendChild(timestampElement);
+    cardBody.appendChild(readMoreLink);
+
+    // Append elements to the card
+    cardElement.appendChild(imageElement);
+    cardElement.appendChild(cardBody);
+
+    // Append the card to the news card container
+    newsCard.appendChild(cardElement);
+
+    // Append the news card to the news grid container
+    newsGridContainer.appendChild(newsCard);
+});
+
+// Append the news grid container to the newsResults container
+newsResults.appendChild(newsGridContainer);
+
+          }   );
+          </script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+</html>
